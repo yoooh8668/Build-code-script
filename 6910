@@ -1,0 +1,125 @@
+#!/bin/bash
+
+Make_6910_delete(){
+#1
+	echo "clear start";
+	cd /media/d/workspace/6910
+	rm -rf amss
+	echo "delete 6910-amss complete";
+	rm -rf android
+	echo "delete 6910-android complete";
+	cd ..
+	rm -rf 6910
+	echo "6910 has been complete removed";
+}
+
+
+Make_6910_dictionary(){
+#2
+	cd /media/d/workspace
+	mkdir 6910
+	cd /media/d/workspace/6910
+	mkdir amss
+	mkdir android
+	echo "6910 dictionary complete";
+}
+
+Make_6910_amss_git(){
+#3
+	cd /media/d/workspace/6910/amss
+	repo init -q -u git://review3.arimacomm.com.tw/platform/amssmanifest -b 6910-tablet-r-release --depth=1
+
+	repo sync -j4
+	echo "amss git complete";
+}
+
+Make_6910_android_git(){
+#4
+	cd /media/d/workspace/6910/android
+	repo init -q -u git://review3.arimacomm.com.tw/platform/manifest -b 6910-tablet-r-vanilla --depth=1 
+	
+	repo sync -j4
+	echo "android git complete";
+}
+
+Make_6910_gradle_build(){
+#5
+	cd /media/d/workspace/6910/amss 
+	
+	python create_android.py --project_combo sm6115-genw3k-tablet-userdebug --android_path /media/d/workspace/6910/android 
+	gradle build -PprojectCombo=sm6115-genw3k-tablet-userdebug -PbuildCommand=dist 2>&1 | tee build.log
+    gradle update_common -PprojectCombo=sm6115-genw3k-tablet-userdebug -PupdateMode=""
+	gradle assemble -PprojectCombo=sm6115-genw3k-tablet-userdebug -Pimagetype=flat 
+	
+	echo "gradle build complete";
+}
+
+#start
+#init
+
+while [ "$keyin" != "q" ]
+do
+	clear
+	echo -----------------------------------------------------
+	echo "1 = remove 6910 complete"
+	echo "2 = makea 6910 dictionary"
+	echo "3 = git 6910 amss"
+	echo "4 = git 6910 android"
+	echo "5 = gradle build 6910"
+	echo
+	echo "10 = reset 6910 file (1~5)"
+	echo "11 = sync code base(1~4)"
+	echo "20 = amss git+gradle build"
+	read -p "Please input Q Exit: " keyin
+
+	if [ "$keyin" == "Q"  ] ; then
+		exit 0
+	fi
+
+	if [ "$keyin" == "q"  ] ; then
+		exit 0
+	fi
+
+	if [ "$keyin" == "1" ]; then
+		Make_6910_delete
+	fi
+	
+	if [ "$keyin" == "2" ]; then
+		Make_6910_dictionary
+	fi
+
+	if [ "$keyin" == "3" ]; then
+		Make_6910_amss_git
+	fi
+	
+	if [ "$keyin" == "4" ]; then
+		Make_6910_android_git
+	fi
+
+	if [ "$keyin" == "5" ]; then
+		Make_6910_gradle_build
+	fi
+
+	if [ "$keyin" == "10" ]; then
+		Make_6910_delete
+		Make_6910_dictionary
+		Make_6910_amss_git
+		Make_6910_android_git
+		Make_6910_gradle_build
+	fi
+	
+	if [ "$keyin" == "11" ]; then
+		Make_6910_delete
+		Make_6910_dictionary
+		Make_6910_amss_git
+		Make_6910_android_git
+	fi
+	
+		if [ "$keyin" == "20" ]; then
+		Make_6910_amss_git
+		Make_6910_gradle_build
+	fi
+	
+	echo -e "please press any key to continue";
+	read line
+done
