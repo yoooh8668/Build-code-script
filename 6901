@@ -1,0 +1,125 @@
+#!/bin/bash
+
+Make_6901_delete(){
+#1
+	echo "clear start";
+	cd /media/d/workspace/6901
+	rm -rf amss
+	echo "delete 6901-amss complete";
+	rm -rf android
+	echo "delete 6901-android complete";
+	cd ..
+	rm -rf 6901
+	echo "6901 has been complete removed";
+}
+
+
+Make_6901_dictionary(){
+#2
+	cd /media/d/workspace
+	mkdir 6901
+	cd /media/d/workspace/6901
+	mkdir amss
+	mkdir android
+	echo "6901 dictionary complete";
+}
+
+Make_6901_amss_git(){
+#3
+	cd /media/d/workspace/6901/amss
+	repo init -q -u git://review3.arimacomm.com.tw/platform/amssmanifest -b 6901-tmobile8-q-release --depth=1
+
+	repo sync -j4
+	echo "amss git complete";
+}
+
+Make_6901_android_git(){
+#4
+	cd /media/d/workspace/6901/android
+	repo init -q -u git://review3.arimacomm.com.tw/platform/manifest -b 6901-tmobile8-q-vanilla --depth=1 
+	
+	repo sync -j4
+	echo "android git complete";
+}
+
+Make_6901_gradle_build(){
+#5
+	cd /media/d/workspace/6901/amss 
+	
+	python create_android.py --chipset sdm439 --android_path /media/d/workspace/6901/android 
+	gradle build -Pchipset=sdm439 -PbuildProject=tablet -PbuildType=userdebug -PbuildComand="" -Pmpsscmd=sdm439.genns.prod  
+	gradle update_common -Pchipset=sdm439 -PbuildProject=tablet -PupdateMode="" 
+	gradle assemble -Pchipset=sdm439 -Pimagetype=flat 
+	
+	echo "gradle build complete";
+}
+
+#start
+#init
+
+while [ "$keyin" != "q" ]
+do
+	clear
+	echo -----------------------------------------------------
+	echo "1 = remove 6901 complete"
+	echo "2 = makea 6901 dictionary"
+	echo "3 = git 6901 amss"
+	echo "4 = git 6901 android"
+	echo "5 = gradle build 6901"
+	echo
+	echo "10 = reset 6901 file (1~5)"
+	echo "11 = sync code base(1~4)"
+	echo "20 = amss git+gradle build"
+	read -p "Please input Q Exit: " keyin
+
+	if [ "$keyin" == "Q"  ] ; then
+		exit 0
+	fi
+
+	if [ "$keyin" == "q"  ] ; then
+		exit 0
+	fi
+
+	if [ "$keyin" == "1" ]; then
+		Make_6901_delete
+	fi
+	
+	if [ "$keyin" == "2" ]; then
+		Make_6901_dictionary
+	fi
+
+	if [ "$keyin" == "3" ]; then
+		Make_6901_amss_git
+	fi
+	
+	if [ "$keyin" == "4" ]; then
+		Make_6901_android_git
+	fi
+
+	if [ "$keyin" == "5" ]; then
+		Make_6901_gradle_build
+	fi
+
+	if [ "$keyin" == "10" ]; then
+		Make_6901_delete
+		Make_6901_dictionary
+		Make_6901_amss_git
+		Make_6901_android_git
+		Make_6901_gradle_build
+	fi
+	
+	if [ "$keyin" == "11" ]; then
+		Make_6901_delete
+		Make_6901_dictionary
+		Make_6901_amss_git
+		Make_6901_android_git
+	fi
+	
+		if [ "$keyin" == "20" ]; then
+		Make_6901_amss_git
+		Make_6901_gradle_build
+	fi
+	
+	echo -e "please press any key to continue";
+	read line
+done
